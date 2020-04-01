@@ -1,0 +1,17 @@
+---
+
+- name: Create Azure Kubernetes Service
+  hosts: localhost
+  connection: local
+  vars:
+    resource_group: "{{ resource_group }}"
+    location: ""{{ location }}"
+    aks_name: "{{ cluster_name }}"
+    username: "{{ username }}"
+    ssh_key: ""
+    client_id: "{{ client_id }}"
+    client_secret: "{{ client_secret }}"
+    aks_version: "{{ aks_version }}"
+
+  rolse:
+    - ansible-azure-kubernetes-cluster
