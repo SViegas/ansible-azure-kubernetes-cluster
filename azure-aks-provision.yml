@@ -1,0 +1,10 @@
+---
+
+- name: Create Azure Kubernetes Service
+  hosts: localhost
+  connection: local
+  vars:
+    aks_name: "{{ cluster_name }}"
+
+  roles:
+    - ansible-aks-provision

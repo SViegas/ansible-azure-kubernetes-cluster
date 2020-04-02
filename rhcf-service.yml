@@ -1,0 +1,11 @@
+---
+
+- name: CloudForms - Manages Service
+  hosts: localhost
+  connection: local
+  vars:
+    action: "{{ action }}"
+    service_name: "{{ aks_name }}"
+
+  roles:
+    - ansible-rhcf-service

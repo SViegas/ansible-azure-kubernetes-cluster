@@ -1,0 +1,8 @@
+---
+
+- name: "Create Azure Kubernetes Service"
+  hosts: localhost
+  connection: local
+
+  roles:
+    - ansible-aks-arm-provision

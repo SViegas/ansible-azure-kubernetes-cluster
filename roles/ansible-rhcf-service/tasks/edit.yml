@@ -1,0 +1,24 @@
+---
+
+- name: "Setting Service Name/Description"
+  uri:
+    url: "https://{{ rhcf_host }}/api/services/{{ service_id }}"
+    method: "{{ action }}"
+    validate_certs: no
+    user: "{{ rhcf_user }}"
+    password: "{{ rhcf_pass }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      action: edit
+      resource:
+        name : "{{ service_name }}"
+        # description: "{{ service_desc }}"
+    return_content: yes
+  register: service_update_response
+
+- name: "Task Result: Setting Service Name/Description"
+  debug:
+    msg: "{{ service_update_response }}"

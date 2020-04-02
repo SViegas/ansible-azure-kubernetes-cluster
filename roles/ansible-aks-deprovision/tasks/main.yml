@@ -1,0 +1,19 @@
+---
+# tasks file for ansible-aks-deprovision
+
+- name: "Delete a managed Azure Container Services (AKS) cluster"
+  azure_rm_aks:
+    name: "{{ aks_name }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    resource_group: "{{ resource_group }}"
+    state: absent
+  register: delete_aks_response
+
+- name: "Task Result: Delete a managed Azure Container Services (AKS) cluster"
+  debug:
+    msg: "{{ delete_aks_response }}"
+
+- include: resource_group.yml

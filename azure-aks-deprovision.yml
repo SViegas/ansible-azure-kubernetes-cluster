@@ -1,0 +1,14 @@
+---
+
+- name: Delete a managed Azure Container Services (AKS) cluster
+  hosts: localhost
+  connection: local
+  vars:
+    aks_name: "{{ aks_name }}"
+    resource_group: "{{ resource_group }}"
+    secret: "{{ client_secret }}"
+    subscription_id: "{{ subscription_id }}"
+    tenant: "{{ tenant_id }}"
+
+  roles:
+    - ansible-aks-deprovision

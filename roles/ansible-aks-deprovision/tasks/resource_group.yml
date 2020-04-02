@@ -1,0 +1,16 @@
+---
+
+- name: "Delete a resource group including resources it contains"
+  azure_rm_resourcegroup:
+    name: "{{ resource_group }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    force_delete_nonempty: yes
+    state: absent
+  register: delete_rg_response
+
+- name: "Task Result: Delete a resource group including resources it contains"
+  debug:
+    msg: "{{ delete_rg_response }}"

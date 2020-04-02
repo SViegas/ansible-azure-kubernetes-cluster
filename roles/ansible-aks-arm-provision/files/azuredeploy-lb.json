@@ -1,0 +1,344 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"vmNamePrefix": {
+			"type": "string",
+			"metadata": {
+				"description": "Name Prefix for the Virtual Machines."
+			}
+		},
+		"dnsPrefix": {
+			"type": "string",
+			"metadata": {
+				"description": "DNS Name Prefix for the Load Balancer."
+			}
+		},
+		"adminUsername": {
+			"type": "string",
+			"metadata": {
+				"description": "User name for the Virtual Machine."
+			}
+		},
+		"vmSize": {
+			"type": "string",
+			"defaultValue": "Standard_A2",
+			"allowedValues": [
+				"Standard_D2_v3",
+				"Standard_D4_v3"
+			],
+			"metadata": {
+				"description": "VM size"
+			}
+		},
+		"numberOfInstances": {
+			"type": "int",
+			"defaultValue": 2,
+			"metadata": {
+				"description": "Number of instances in the pool."
+			}
+		},
+		"vNetName": {
+			"type": "string",
+			"defaultValue": "Payloads",
+			"allowedValues": [
+				"Payloads",
+				"ManageIQ_Group"
+			],
+			"metadata": {
+				"description": "Virtual Network"
+			}
+		},
+		"ubuntuOSVersion": {
+			"type": "string",
+			"defaultValue": "14.04.2-LTS",
+			"allowedValues": [
+				"12.04.5-LTS",
+				"14.04.2-LTS",
+				"15.10"
+			],
+			"metadata": {
+				"description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
+			}
+		},
+		"location": {
+			"type": "string",
+			"defaultValue": "uksouth",
+			"metadata": {
+				"description": "Location for all resources."
+			}
+		},
+		"authenticationType": {
+			"type": "string",
+			"defaultValue": "sshPublicKey",
+			"allowedValues": [
+				"sshPublicKey",
+				"password"
+			],
+			"metadata": {
+				"description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+			}
+		},
+		"adminPasswordOrKey": {
+			"type": "securestring",
+			"metadata": {
+				"description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
+			}
+		}
+	},
+	"variables": {
+		"availabilitySetName": "[concat(parameters('vmNamePrefix'), '-avSet')]",
+		"loadBalancerName": "[concat(parameters('vmNamePrefix'), '-nlb')]",
+		"lbID": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
+		"storageAccountName": "payloads",
+		"imagePublisher": "Canonical",
+		"imageOffer": "UbuntuServer",
+		"nicName": "[concat(parameters('vmNamePrefix'),'-nic')]",
+		"publicIPAddressName": "[concat(parameters('vmNamePrefix'),'-ip')]",
+		"lbPublicIPName": "[concat(parameters('vmNamePrefix'), '-nlb-ip')]",
+		"subnetName": "default",
+		"publicIPAddressType": "Dynamic",
+		"networkSecurityGroupName": "[concat(parameters('vmNamePrefix'),'-nsg')]",
+		"virtualNetworkName": "[concat(parameters('vNetName'),'-vnet')]",
+		"vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+		"subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+		"apiVersion": "2015-06-15",
+		"linuxConfiguration": {
+			"disablePasswordAuthentication": true,
+			"ssh": {
+				"publicKeys": [
+					{
+						"path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+						"keyData": "[parameters('adminPasswordOrKey')]"
+					}
+				]
+			}
+		}
+	},
+	"resources": [
+		{
+			"apiVersion": "2018-04-01",
+			"type": "Microsoft.Compute/availabilitySets",
+			"location": "[parameters('location')]",
+			"name": "[variables('availabilitySetName')]",
+			"properties": {
+				"PlatformUpdateDomainCount": 2,
+				"PlatformFaultDomainCount": 2
+			},
+			"sku": {
+				"name": "Aligned"
+			}
+		},
+		{
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"apiVersion": "2018-11-01",
+			"name": "[variables('networkSecurityGroupName')]",
+			"location": "[parameters('location')]",
+			"properties": {
+				"securityRules": [
+					{
+						"name": "ssh_rule",
+						"properties": {
+							"description": "Locks inbound down to ssh default port 22.",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "22",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 1000,
+							"direction": "Inbound"
+						}
+					},
+					{
+						"name": "http_rule",
+						"properties": {
+							"description": "Opens port 80 through LoadBalancer IP.",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "80",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 2000,
+							"direction": "Inbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "[concat(variables('publicIPAddressName'), copyIndex())]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "ipLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"properties": {
+				"publicIPAllocationMethod": "[variables('publicIPAddressType')]"
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "[variables('lbPublicIPName')]",
+			"location": "[parameters('location')]",
+			"properties": {
+				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[parameters('dnsPrefix')]"
+				}
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[concat(variables('nicName'), copyIndex())]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "nicLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"dependsOn": [
+				"ipLoop",
+				"[variables('networkSecurityGroupName')]",
+				"[variables('loadBalancerName')]"
+			],
+			"properties": {
+				"ipConfigurations": [
+					{
+						"name": "ipconfig1",
+						"properties": {
+							"privateIPAllocationMethod": "Dynamic",
+							"publicIPAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), copyIndex()))]"
+							},
+							"subnet": {
+								"id": "[variables('subnetRef')]"
+							},
+							"loadBalancerBackendAddressPools": [
+								{
+									"id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"
+								}
+							]
+						}
+					}
+				],
+				"networkSecurityGroup": {
+					"id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('networkSecurityGroupName'))]"
+				}
+			}
+		},
+		{
+			"apiVersion": "2018-04-01",
+			"type": "Microsoft.Network/loadBalancers",
+			"name": "[variables('loadBalancerName')]",
+			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/publicIPAddresses/', variables('lbPublicIPName'))]"
+			],
+			"properties": {
+				"frontendIPConfigurations": [
+					{
+						"properties": {
+							"publicIPAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbPublicIPName'))]"
+							}
+						},
+						"name": "LoadBalancerFrontend"
+					}
+				],
+				"backendAddressPools": [
+					{
+						"name": "BackendPool1"
+					}
+				],
+				"loadBalancingRules": [
+					{
+						"properties": {
+							"frontendIPConfiguration": {
+								"id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/frontendIpConfigurations/LoadBalancerFrontend')]"
+							},
+							"backendAddressPool": {
+								"id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/backendAddressPools/BackendPool1')]"
+							},
+							"probe": {
+								"id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/probes/lbprobe')]"
+							},
+							"protocol": "Tcp",
+							"frontendPort": 80,
+							"backendPort": 80,
+							"idleTimeoutInMinutes": 15
+						},
+						"Name": "lbrule"
+					}
+				],
+				"probes": [
+					{
+						"properties": {
+							"protocol": "Tcp",
+							"port": 80,
+							"intervalInSeconds": 15,
+							"numberOfProbes": 2
+						},
+						"name": "lbprobe"
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2016-04-30-preview",
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[concat(parameters('vmNamePrefix'), copyIndex())]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "virtualMachineLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"dependsOn": [
+				"nicLoop",
+				"[variables('availabilitySetName')]"
+			],
+			"properties": {
+				"availabilitySet": {
+					"id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+				},
+				"hardwareProfile": {
+					"vmSize": "[parameters('vmSize')]"
+				},
+				"osProfile": {
+					"computerName": "[parameters('vmNamePrefix')]",
+					"adminUsername": "[parameters('adminUsername')]",
+					"adminPassword": "[parameters('adminPasswordOrKey')]",
+					"linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]"
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "[variables('imagePublisher')]",
+						"offer": "[variables('imageOffer')]",
+						"sku": "[parameters('ubuntuOSVersion')]",
+						"version": "latest"
+					},
+					"osDisk": {
+						"createOption": "FromImage"
+					}
+				},
+				"networkProfile": {
+					"networkInterfaces": [
+						{
+							"id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'), copyIndex()))]"
+						}
+					]
+				},
+				"diagnosticsProfile": {
+					"bootDiagnostics": {
+						"enabled": true,
+						"storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), variables('apiVersion')).primaryEndpoints.blob)]"
+					}
+				}
+			}
+		}
+	]
+}
