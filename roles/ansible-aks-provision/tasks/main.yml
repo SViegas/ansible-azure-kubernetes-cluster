@@ -2,43 +2,43 @@
 # tasks file for ansible-aks-provision
 
 - debug:
-    msg: "{{ client_id }}"
+    msg: "Client ID: {{ client_id }}, Client Key: {{ client_secret }}"
 
-# - include: resource_group.yml
+- include: resource_group.yml
 
-# - name: Get current status of AKS
-#   azure_rm_aks_info:
-#     name: "{{ aks_name }}"
-#     client_id: "{{ client_id }}"
-#     secret: "{{ client_secret }}"
-#     tenant: "{{ tenant_id }}"
-#     subscription_id: "{{ subscription_id }}"
-#     resource_group: "{{ resource_group }}"
-#   register: aks_facts
+- name: Get current status of AKS
+  azure_rm_aks_info:
+    name: "{{ aks_name }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    resource_group: "{{ resource_group }}"
+  register: aks_facts
 
-# - debug:
-#     msg: "{{ aks_facts }}"
+- debug:
+    msg: "{{ aks_facts }}"
 
-# - name: Create a managed Azure Container Services (AKS) cluster
-#   azure_rm_aks:
-#     name: "{{ aks_name }}"
-#     client_id: "{{ client_id }}"
-#     secret: "{{ client_secret }}"
-#     tenant: "{{ tenant_id }}"
-#     subscription_id: "{{ subscription_id }}"
-#     location: "{{ location }}"
-#     resource_group: "{{ resource_group }}"
-#     dns_prefix: "{{ aks_name }}"
-#     kubernetes_version: "{{ aks_version }}"
-#     linux_profile:
-#       admin_username: "{{ username }}"
-#       ssh_key: "{{ ssh_key }}"
-#     service_principal:
-#       client_id: "{{ client_id }}"
-#       client_secret: "{{ client_secret }}"
-#     agent_pool_profiles:
-#       - name: default
-#         count: "{{ node_count }}"
-#         vm_size: "{{ vm_size }}"
-#     tags:
-#         Environment: Production
+- name: Create a managed Azure Container Services (AKS) cluster
+  azure_rm_aks:
+    name: "{{ aks_name }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    location: "{{ location }}"
+    resource_group: "{{ resource_group }}"
+    dns_prefix: "{{ aks_name }}"
+    kubernetes_version: "{{ aks_version }}"
+    linux_profile:
+      admin_username: "{{ username }}"
+      ssh_key: "{{ ssh_key }}"
+    service_principal:
+      client_id: "{{ client_id }}"
+      client_secret: "{{ client_secret }}"
+    agent_pool_profiles:
+      - name: default
+        count: "{{ node_count }}"
+        vm_size: "{{ vm_size }}"
+    tags:
+        Environment: Production
