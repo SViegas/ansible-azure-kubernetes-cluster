@@ -1,6 +1,8 @@
 ---
 # tasks file for ansible-aks-arm-provision
 
+- include_vars: "{{ deployment_type }}.yml"
+
 - name: "Create Azure Deploy"
   azure_rm_deployment:
     resource_group: "{{ resource_group }}"
@@ -10,18 +12,8 @@
     subscription_id: "{{ subscription_id }}"
     name: "{{ deployment_name }}"
     location: "{{ location }}"
-    parameters:
-      sites_demo13_nopCommerce02_name:
-        value: "{{ site_name }}"
-      serverfarms_demo13_nopCommerce02_3a9f_name:
-        value: "{{ server_farm_name }}"
-      metricAlerts_DXC_Warning_WebApp_demo13_nopCommerce02_Requests_name:
-        value: "{{ warning_metric_alert_name }}"
-      metricAlerts_DXC_Critical_WebApp_demo13_nopCommerce02_Requests_name:
-        value: "{{ critical_metric_alert_name }}"
-      location:
-        value: "{{ location }}"
-    template: "{{ lookup( 'file' , '../files/app_service.json')}}"
+    parameters: "{{ parameters }}"
+    template: "{{ lookup( 'file' , '../files/deployment_type.json')}}"
   register: azure
 
 - name: "Task Result: Create Azure Deploy"
