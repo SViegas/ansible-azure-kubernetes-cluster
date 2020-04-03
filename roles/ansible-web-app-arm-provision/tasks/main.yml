@@ -1,7 +1,7 @@
 ---
 # tasks file for ansible-aks-arm-provision
 
-- include_vars: "{{ deployment_type }}.yml"
+- include_vars: "../vars/{{ deployment_type }}.yml"
 
 - name: "Create Azure Deploy"
   azure_rm_deployment:
