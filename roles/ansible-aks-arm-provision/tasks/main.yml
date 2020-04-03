@@ -24,7 +24,7 @@
         value: "{{ location }}"
 
 - debug:
-    msg: "{{ managedClusters_Demo_AKS_name }}"
+    msg: "{{ parameters }}"
   
 
 # - name: "Create Azure Deploy"
