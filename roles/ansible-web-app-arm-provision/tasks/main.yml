@@ -13,7 +13,7 @@
     name: "{{ deployment_name }}"
     location: "{{ location }}"
     parameters: "{{ parameters }}"
-    template: "{{ lookup( 'file' , '../files/deployment_type.json')}}"
+    template: "{{ lookup( 'file' , '../files/' + deployment_type + '.json')}}"
   register: azure
 
 - name: "Task Result: Create Azure Deploy"
