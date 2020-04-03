@@ -10,33 +10,10 @@
             "defaultValue": "uksouth",
             "type": "String"
         },
-        "environment": {
-            "defaultValue": "Production",
-            "type": "String"
-        },
-        "vmSize": {
-            "defaultValue": "Standard_D2_v2",
-            "type": "String"
-        },
-        "kubernetesVersion": {
-            "defaultValue": "1.15.10",
-            "type": "String"
-        },
         "clientId": {
             "defaultValue": "",
             "type": "String"
-        },
-        "resource_group": {
-            "defaultValue": "",
-            "type": "String"
-        },
-		"node_count": {
-			"type": "int",
-			"defaultValue": 2,
-			"metadata": {
-				"description": "Number of node in cluster."
-			}
-		}
+        }
     },
     "variables": {},
     "resources": [
@@ -46,20 +23,20 @@
             "name": "[parameters('aks_name')]",
             "location": "[parameters('location')]",
             "tags": {
-                "Environment": "[parameters('environment')]"
+                "Environment": "Production"
             },
             "properties": {
-                "kubernetesVersion": "parameters('kubernetesVersion')]",
+                "kubernetesVersion": "1.15.10",
                 "dnsPrefix": "[parameters('aks_name')]",
                 "agentPoolProfiles": [
                     {
                         "name": "default",
                         "count": 2,
-                        "vmSize": "[parameters('vmSize')]",
+                        "vmSize": "Standard_D2_v2",
                         "osDiskSizeGB": 100,
                         "maxPods": 110,
                         "type": "AvailabilitySet",
-                        "orchestratorVersion": "parameters('kubernetesVersion')]",
+                        "orchestratorVersion": "1.15.10",
                         "osType": "Linux"
                     }
                 ],
@@ -76,7 +53,7 @@
                 "servicePrincipalProfile": {
                     "clientId": "parameters('clientId')]"
                 },
-                "nodeResourceGroup": "[concat('MC_', parameters('resource_group'), '_', parameters('aks_name'), '_uksouth')]",
+                "nodeResourceGroup": "[concat('MC_AKS-Demo-RG_', parameters('aks_name'), '_uksouth')]",
                 "enableRBAC": false,
                 "networkProfile": {
                     "networkPlugin": "kubenet",
@@ -97,12 +74,12 @@
                 "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aks_name'))]"
             ],
             "properties": {
-                "count": "[parameters('node_count')]",
-                "vmSize": "[parameters('vmSize')]",
+                "count": 2,
+                "vmSize": "Standard_D2_v2",
                 "osDiskSizeGB": 100,
                 "maxPods": 110,
                 "type": "AvailabilitySet",
-                "orchestratorVersion": "parameters('kubernetesVersion')]",
+                "orchestratorVersion": "1.15.10",
                 "osType": "Linux"
             }
         }
