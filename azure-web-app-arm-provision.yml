@@ -1,0 +1,8 @@
+---
+
+- name: "Create Azure Web App"
+  hosts: localhost
+  connection: local
+
+  roles:
+    - ansible-web-app-arm-provision

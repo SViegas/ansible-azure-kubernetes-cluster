@@ -1,29 +1,61 @@
 ---
-# tasks file for ansible-aks-arm-provision
+# tasks file for ansible-aks-provision
 
-- name: "Create Azure Deploy"
-  azure_rm_deployment:
-    resource_group: "{{ resource_group }}"
-    client_id: "{{ client_id }}"
-    secret: "{{ client_secret }}"
-    tenant: "{{ tenant_id }}"
-    subscription_id: "{{ subscription_id }}"
-    name: "{{ deployment_name }}"
-    location: "{{ location }}"
+- debug:
+    msg: "Client ID: {{ client_id }}, Client Key: {{ client_secret }}"
+
+- set_fact:
     parameters:
-      sites_demo13_nopCommerce02_name:
-        value: "{{ site_name }}"
-      serverfarms_demo13_nopCommerce02_3a9f_name:
-        value: "{{ server_farm_name }}"
-      metricAlerts_DXC_Warning_WebApp_demo13_nopCommerce02_Requests_name:
-        value: "{{ warning_metric_alert_name }}"
-      metricAlerts_DXC_Critical_WebApp_demo13_nopCommerce02_Requests_name:
-        value: "{{ critical_metric_alert_name }}"
+      managedClusters_Demo_AKS_name:
+        value: "{{ aks_name }}"
+      environment:
+        value: "{{ environment }}"
+      vmSize:
+        value: "{{ vm_size }}"
+      kubernetesVersion:
+        value: "{{ aks_version }}"
+      clientId:
+        value: "{{ client_id }}"
+      resource_group:
+        value: "{{ resource_group }}"
+      node_count:
+        value: "{{ node_count }}"
       location:
         value: "{{ location }}"
-    template: "{{ lookup( 'file' , '../files/app_service.json')}}"
-  register: azure
 
-- name: "Task Result: Create Azure Deploy"
-  debug:
-      msg: "{{ azure }}"
+- debug:
+    msg: "{{ managedClusters_Demo_AKS_name }}"
+  
+
+# - name: "Create Azure Deploy"
+#   azure_rm_deployment:
+#     resource_group: "{{ resource_group }}"
+#     client_id: "{{ client_id }}"
+#     secret: "{{ client_secret }}"
+#     tenant: "{{ tenant_id }}"
+#     subscription_id: "{{ subscription_id }}"
+#     name: "{{ deployment_name }}"
+#     location: "{{ location }}"
+#     parameters:
+#       managedClusters_Demo_AKS_name:
+#         value: "{{ aks_name }}"
+#       environment:
+#         value: "{{ environment }}"
+#       vmSize:
+#         value: "{{ vm_size }}"
+#       kubernetesVersion:
+#         value: "{{ aks_version }}"
+#       clientId:
+#         value: "{{ client_id }}"
+#       resource_group:
+#         value: "{{ resource_group }}"
+#       node_count:
+#         value: "{{ node_count }}"
+#       location:
+#         value: "{{ location }}"
+#     template: "{{ lookup( 'file' , '../files/aks.json')}}"
+#   register: azure
+
+# - name: "Task Result: Create Azure Deploy"
+#   debug:
+#       msg: "{{ azure }}"

@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aks_name": {
+            "defaultValue": "Demo-AKS",
+            "type": "String"
+        },
+        "location": {
+            "defaultValue": "uksouth",
+            "type": "String"
+        },
+        "environment": {
+            "defaultValue": "Production",
+            "type": "String"
+        },
+        "vmSize": {
+            "defaultValue": "Standard_D2_v2",
+            "type": "String"
+        },
+        "kubernetesVersion": {
+            "defaultValue": "1.15.10",
+            "type": "String"
+        },
+        "clientId": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "resource_group": {
+            "defaultValue": "",
+            "type": "String"
+        },
+		"node_count": {
+			"type": "int",
+			"defaultValue": 2,
+			"metadata": {
+				"description": "Number of node in cluster."
+			}
+		}
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-02-01",
+            "name": "[parameters('aks_name')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "Environment": "[parameters('environment')]"
+            },
+            "properties": {
+                "kubernetesVersion": "parameters('kubernetesVersion')]",
+                "dnsPrefix": "[parameters('aks_name')]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "default",
+                        "count": 2,
+                        "vmSize": "[parameters('vmSize')]",
+                        "osDiskSizeGB": 100,
+                        "maxPods": 110,
+                        "type": "AvailabilitySet",
+                        "orchestratorVersion": "parameters('kubernetesVersion')]",
+                        "osType": "Linux"
+                    }
+                ],
+                "linuxProfile": {
+                    "adminUsername": "azureuser",
+                    "ssh": {
+                        "publicKeys": [
+                            {
+                                "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7M8hWGPtTsUpBPjgCD5H+ALP8AUaCCZI3oY9sapZHsK5N/ctakSOELk6+LXT6uu7i980TO/BeAs0a9AZxAlzi2ZrkOU6fCPKXV9oxmaBvqJFUvWw1T+yDGh7/Ohjnrt/bxG7a83c2aUEPB0PC7N4hWgLwtflo3zjyCLDkts2SZ6LSBRmLsvm893f/DZp3cDQer2vrW/KSEvm132GZle1zdm/laADiqdHABa0sQePalnI/Ru7mueVQdLQfC+h/wnLvrklNK5rsIjCNqaA49dc6hz9FO1HIpSFu5258cFSRSvONXOrwRjx6M7liqextb9kRZ7Cn2tNeB3rgibT2A0Jh4QBsUFSamDd74aHr2qaGsPCdiQitU0QuMQFhEQ52yzmuJqZwFTZ9BiHeajQ9610Vu+5VDU0LdTw7GFLqwUmomNx0S067P+u7OA7xv6flNGw7QKN9HoHWDH1eEmfnfwXc2BtCsNvazQ4W18+etruqk8Wc8aj82lgzJE9wjdQCbI19JfITD5MXhMpaOZOhAf4iEbeQCYTFQtqr+Qj1mmP3RvJQIvj1nRhGA+4cuYyeme72CgU9HrpvIgvEo3iYkd7YAZwX3zA85rLvFQJ4G8VzmSBvFyTbyqRZJj20PSkexN4fplvnSV5rADrJ1CMB5spQv8DeW10ALtJPTlDxos3/Lw== viegas@dxc.com"
+                            }
+                        ]
+                    }
+                },
+                "servicePrincipalProfile": {
+                    "clientId": "parameters('clientId')]"
+                },
+                "nodeResourceGroup": "[concat('MC_', parameters('resource_group'), '_', parameters('aks_name'), '_uksouth')]",
+                "enableRBAC": false,
+                "networkProfile": {
+                    "networkPlugin": "kubenet",
+                    "loadBalancerSku": "Basic",
+                    "podCidr": "10.244.0.0/16",
+                    "serviceCidr": "10.0.0.0/16",
+                    "dnsServiceIP": "10.0.0.10",
+                    "dockerBridgeCidr": "172.17.0.1/16",
+                    "outboundType": "loadBalancer"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters/agentPools",
+            "apiVersion": "2020-02-01",
+            "name": "[concat(parameters('aks_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aks_name'))]"
+            ],
+            "properties": {
+                "count": "[parameters('node_count')]",
+                "vmSize": "[parameters('vmSize')]",
+                "osDiskSizeGB": 100,
+                "maxPods": 110,
+                "type": "AvailabilitySet",
+                "orchestratorVersion": "parameters('kubernetesVersion')]",
+                "osType": "Linux"
+            }
+        }
+    ]
+}
