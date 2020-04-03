@@ -1,0 +1,17 @@
+parameters:
+  managedClusters_Demo_AKS_name:
+    value: "{{ aks_name }}"
+  environment:
+    value: "{{ environment }}"
+  vmSize:
+    value: "{{ vm_size }}"
+  kubernetesVersion:
+    value: "{{ aks_version }}"
+  clientId:
+    value: "{{ client_id }}"
+  resource_group:
+    value: "{{ resource_group }}"
+  node_count:
+    value: "{{ node_count }}"
+  location:
+    value: "{{ location }}"

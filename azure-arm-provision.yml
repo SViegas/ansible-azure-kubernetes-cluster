@@ -5,4 +5,4 @@
   connection: local
 
   roles:
-    - ansible-web-app-arm-provision
+    - ansible-arm-provision
