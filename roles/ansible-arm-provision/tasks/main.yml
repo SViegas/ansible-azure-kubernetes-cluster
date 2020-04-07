@@ -3,6 +3,11 @@
 
 - include_vars: "{{ deployment_type }}.yml"
 
+- debug:
+    msg: "Client ID: {{ client_id }}, Client Key: {{ client_secret }}"
+
+- include: resource_group.yml
+
 - name: "Create Azure Deploy"
   azure_rm_deployment:
     resource_group: "{{ resource_group }}"

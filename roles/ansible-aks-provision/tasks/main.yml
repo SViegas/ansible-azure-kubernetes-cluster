@@ -42,3 +42,16 @@
         vm_size: "{{ vm_size }}"
     tags:
         Environment: Production
+
+- name: Get current status of AKS
+  azure_rm_aks_info:
+    name: "{{ aks_name }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    resource_group: "{{ resource_group }}"
+  register: aks_facts
+
+- debug:
+    msg: "{{ aks_facts }}"

@@ -1,0 +1,14 @@
+---
+
+- name: Create resource group
+  azure_rm_resourcegroup:
+    name: "{{ resource_group }}"
+    client_id: "{{ client_id }}"
+    secret: "{{ client_secret }}"
+    tenant: "{{ tenant_id }}"
+    subscription_id: "{{ subscription_id }}"
+    location: "{{ location }}"
+  register: create_rg_response
+
+- debug:
+    msg: "{{ create_rg_response }}"
